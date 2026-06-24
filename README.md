@@ -1,6 +1,6 @@
-# IdealCommerce Admin
+# Eandewigs Admin
 
-Standalone Next.js back-office for IdealCommerce. It talks to the same backend
+Standalone Next.js back-office for Eandewigs. It talks to the same backend
 API as the storefront and is gated to the `admin` role.
 
 ```bash

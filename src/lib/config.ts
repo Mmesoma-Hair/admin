@@ -4,7 +4,7 @@ import { cache } from "react";
 
 import { backendFetch } from "./api";
 
-const FALLBACK_NAME = "IdealCommerce";
+const FALLBACK_NAME = "Eandewigs";
 
 /**
  * The admin-managed store name (storeconfig `store.name`), so the admin
