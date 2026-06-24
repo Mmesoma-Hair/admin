@@ -27,6 +27,16 @@ const STATUSES = [
   "refunded",
 ];
 
+// "routing" is the internal-fulfillment resting state — surfaced as "Processing".
+const STATUS_LABELS: Record<string, string> = { routing: "Processing" };
+
+function statusLabel(status: string): string {
+  return STATUS_LABELS[status] ?? status.replace(/_/g, " ");
+}
+
+// Statuses where an internal shipment may still be pending an admin "ship".
+const SHIPPABLE = new Set(["routing", "partially_fulfilled"]);
+
 const selectCls =
   "h-9 border border-ink/15 bg-white px-2 text-sm text-ink focus:border-primary focus:outline-none";
 
@@ -66,6 +76,26 @@ export function OrdersAdmin() {
     }
   }
 
+  async function markShipped(number: string) {
+    setError(null);
+    const tracking = window.prompt("Tracking number (optional):", "") ?? "";
+    const carrier = tracking
+      ? (window.prompt("Carrier (optional):", "") ?? "")
+      : "";
+    try {
+      await adminCall(`/orders/${number}/mark-shipped/`, {
+        method: "POST",
+        body: JSON.stringify({
+          tracking_number: tracking,
+          carrier,
+        }),
+      });
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Mark shipped failed.");
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4">
       {error && <Banner tone="error">{error}</Banner>}
@@ -92,7 +122,7 @@ export function OrdersAdmin() {
                   <td className="px-4 py-3 font-medium text-ink">{o.number}</td>
                   <td className="px-4 py-3">
                     <Badge tone={statusTone(o.status)}>
-                      {o.status.replace(/_/g, " ")}
+                      {statusLabel(o.status)}
                     </Badge>
                   </td>
                   <td className="px-4 py-3 text-ink/70">
@@ -111,10 +141,19 @@ export function OrdersAdmin() {
                         <option value="">Set status…</option>
                         {STATUSES.map((s) => (
                           <option key={s} value={s}>
-                            {s.replace(/_/g, " ")}
+                            {statusLabel(s)}
                           </option>
                         ))}
                       </select>
+                      {SHIPPABLE.has(o.status) && (
+                        <Button
+                          variant="ghost"
+                          type="button"
+                          onClick={() => markShipped(o.number)}
+                        >
+                          Mark shipped
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         type="button"
