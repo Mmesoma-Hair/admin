@@ -171,6 +171,7 @@ export function SettingsEditor() {
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
   async function load() {
     const data = await adminCall<{ settings: Setting[] }>(
@@ -338,9 +339,20 @@ export function SettingsEditor() {
 
   return (
     <div className="flex flex-col gap-5 pb-24">
-      {sections.map((section, i) => (
+      {sections.map((section, i) => {
+        const isCollapsed = collapsed[section] ?? false;
+        const sectionItems = settings.filter((s) => s.section === section);
+        const sectionDirty = sectionItems.filter(isDirty).length;
+        return (
         <section key={section} className="admin-card overflow-hidden">
-          <div className="flex items-center justify-between border-b border-ink/10 px-6 py-4">
+          <button
+            type="button"
+            aria-expanded={!isCollapsed}
+            onClick={() =>
+              setCollapsed((c) => ({ ...c, [section]: !isCollapsed }))
+            }
+            className="flex w-full items-center justify-between gap-3 border-b border-ink/10 px-6 py-4 text-left transition-colors hover:bg-ink/[0.015]"
+          >
             <div>
               <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">
                 {String(i + 1).padStart(2, "0")}
@@ -349,11 +361,34 @@ export function SettingsEditor() {
                 {sectionLabel(section)}
               </h2>
             </div>
-          </div>
+            <div className="flex items-center gap-3">
+              {sectionDirty > 0 && (
+                <span className="inline-flex items-center gap-1.5 text-xs text-ink/55">
+                  <span className="h-1.5 w-1.5 bg-accent" />
+                  {sectionDirty} unsaved
+                </span>
+              )}
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+                className={`shrink-0 text-ink/40 transition-transform ${
+                  isCollapsed ? "" : "rotate-180"
+                }`}
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </div>
+          </button>
+          {!isCollapsed && (
           <div className="divide-y divide-ink/[0.07]">
-            {settings
-              .filter((s) => s.section === section)
-              .map((s) => {
+            {sectionItems.map((s) => {
                 const dirty = isDirty(s);
                 return (
                   <div
@@ -388,8 +423,10 @@ export function SettingsEditor() {
                 );
               })}
           </div>
+          )}
         </section>
-      ))}
+        );
+      })}
 
       {/* Sticky save bar */}
       <div className="fixed bottom-0 left-0 right-0 z-10 border-t border-ink/10 bg-white/90 px-4 py-3 backdrop-blur lg:left-64 lg:px-8">
