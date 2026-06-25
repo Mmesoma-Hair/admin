@@ -8,6 +8,8 @@ import { adminCall } from "@/lib/admin-client";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { cloudinaryUrl } from "@/lib/env";
 
+import { SocialLinksField } from "./social-links-field";
+
 type Setting = {
   key: string;
   section: string;
@@ -27,6 +29,7 @@ const SECTION_LABELS: Record<string, string> = {
   features: "Features",
   content: "Content",
   ordering: "Chat to order",
+  footer: "Footer",
 };
 
 const ACRONYMS: Record<string, string> = {
@@ -237,6 +240,15 @@ export function SettingsEditor() {
   const sections = [...new Set(settings.map((s) => s.section))];
 
   function field(s: Setting) {
+    // Footer social links get a dedicated list editor with an icon picker.
+    if (s.key === "footer.social_links") {
+      return (
+        <SocialLinksField
+          value={draft[s.key]}
+          onChange={(next) => setDraft((d) => ({ ...d, [s.key]: next }))}
+        />
+      );
+    }
     // Asset settings (logo / image public_ids) get an upload widget.
     if (s.key.endsWith("_public_id") || s.key.includes("logo")) {
       return (
