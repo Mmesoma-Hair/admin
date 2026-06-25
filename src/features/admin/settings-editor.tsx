@@ -8,6 +8,7 @@ import { adminCall } from "@/lib/admin-client";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { cloudinaryUrl } from "@/lib/env";
 
+import { SeoSectionsField } from "./seo-sections-field";
 import { SocialLinksField } from "./social-links-field";
 
 type Setting = {
@@ -244,6 +245,15 @@ export function SettingsEditor() {
     if (s.key === "footer.social_links") {
       return (
         <SocialLinksField
+          value={draft[s.key]}
+          onChange={(next) => setDraft((d) => ({ ...d, [s.key]: next }))}
+        />
+      );
+    }
+    // Home-page SEO content blocks get a dedicated heading + body editor.
+    if (s.key === "content.seo_sections") {
+      return (
+        <SeoSectionsField
           value={draft[s.key]}
           onChange={(next) => setDraft((d) => ({ ...d, [s.key]: next }))}
         />
